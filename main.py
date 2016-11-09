@@ -59,6 +59,8 @@ class LogInLayer(BaseLayer):
         )
         self.add(self.warning_label)
 
+        self.go_to_wave = False
+
     def on_password_entered(self, text):
         if len(text) > len(self.password_value):
             self.password_value += text[-1:]
@@ -99,7 +101,7 @@ class LogInLayer(BaseLayer):
                 global wave
                 wave = wave_request.json()[u'todos']
                 self.warning_message = "OK! Found " + str(len(wave)) + "!"
-                cocos.director.director.replace(WaveLayer.create_scene())
+                self.go_to_wave = True
 
             else:
                 self.warning_message = "Wave ERROR"
@@ -113,12 +115,21 @@ class LogInLayer(BaseLayer):
         super(LogInLayer, self).update(dt)
 
         self.warning_label.element.text = self.warning_message
+        if self.go_to_wave:
+            cocos.director.director.replace(WaveLayer.create_scene())
 
 
 class WaveLayer(BaseLayer):
 
     def __init__(self):
         super(WaveLayer, self).__init__(0, 100, 200, 125)
+
+        self.sprite = cocos.sprite.Sprite("assets/ships.png", position=(self.get_window_width()/2, self.get_window_height()/2))
+        self.add(self.sprite)
+
+    def update(self, dt):
+        super(WaveLayer, self).update(dt)
+
 
 cocos.director.director.init(width=800, height=480, caption="TODO DESTROYER")
 cocos.director.director.run(LogInLayer.create_scene())
