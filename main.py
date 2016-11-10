@@ -92,7 +92,7 @@ class LogInLayer(BaseLayer):
             self.warning_message = "OK.. Getting first wave"
             global token
             token = log_in_request.json()[u'token']
-            wave_request = requests.get("http://todo-api.dlavieri.com/todo?page_size=10", headers={
+            wave_request = requests.get("http://todo-api.dlavieri.com/todo?page_size=10&filters=completed:true", headers={
                 'Content-Type': "application/json",
                 'Authorization': "Bearer " + token
             })
@@ -100,6 +100,7 @@ class LogInLayer(BaseLayer):
             if wave_request.status_code == 200:
                 global wave
                 wave = wave_request.json()[u'todos']
+                print("Found " + str(len(wave)))
                 self.warning_message = "OK! Found " + str(len(wave)) + "!"
                 self.go_to_wave = True
 
