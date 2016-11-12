@@ -1,35 +1,11 @@
 import cocos
-import threading
 import requests
-import pyglet
-
+import threading
+from .BaseLayer import BaseLayer
+from .WaveLayer import WaveLayer
 
 token = ""
 wave = []
-
-
-class BaseLayer(cocos.layer.ColorLayer):
-
-    def __init__(self, r, g, b, a, width=None, height=None):
-        super(BaseLayer, self).__init__(r, g, b, a, width=width, height=height)
-
-        self.schedule(self.update)
-
-    def update(self, dt):
-        pass
-
-    def get_window_width(self):
-        return cocos.director.director.get_window_size()[0]
-
-    def get_window_height(self):
-        return cocos.director.director.get_window_size()[1]
-
-    def do_nothing(self, *args, **kwargs):
-        pass
-
-    @classmethod
-    def create_scene(cls):
-        return cocos.scene.Scene(cls())
 
 
 class LogInLayer(BaseLayer):
@@ -81,21 +57,27 @@ class LogInLayer(BaseLayer):
             self.warning_message = "Wait please... Trying to log in"
 
     def request_log_in(self):
-        log_in_request = requests.post("http://todo-api.dlavieri.com/login", json={
-            'email': self.email.value,
-            'password': self.password_value
-        }, headers={
-            'Content-Type': "application/json"
-        })
+        log_in_request = requests.post(
+            "http://todo-api.dlavieri.com/login",
+            json={
+                'email': self.email.value,
+                'password': self.password_value
+            }, headers={
+                'Content-Type': "application/json"
+            }
+        )
 
         if log_in_request.status_code == 200:
             self.warning_message = "OK.. Getting first wave"
             global token
             token = log_in_request.json()[u'token']
-            wave_request = requests.get("http://todo-api.dlavieri.com/todo?page_size=10&filters=completed:true", headers={
-                'Content-Type': "application/json",
-                'Authorization': "Bearer " + token
-            })
+            wave_request = requests.get(
+                "http://todo-api.dlavieri.com/todo?page_size=10&filters=completed:true",
+                headers={
+                    'Content-Type': "application/json",
+                    'Authorization': "Bearer " + token
+                }
+            )
 
             if wave_request.status_code == 200:
                 global wave
@@ -118,19 +100,3 @@ class LogInLayer(BaseLayer):
         self.warning_label.element.text = self.warning_message
         if self.go_to_wave:
             cocos.director.director.replace(WaveLayer.create_scene())
-
-
-class WaveLayer(BaseLayer):
-
-    def __init__(self):
-        super(WaveLayer, self).__init__(0, 100, 200, 125)
-
-        self.sprite = cocos.sprite.Sprite("assets/ships.png", position=(self.get_window_width()/2, self.get_window_height()/2))
-        self.add(self.sprite)
-
-    def update(self, dt):
-        super(WaveLayer, self).update(dt)
-
-
-cocos.director.director.init(width=800, height=480, caption="TODO DESTROYER")
-cocos.director.director.run(LogInLayer.create_scene())
